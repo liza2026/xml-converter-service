@@ -30,25 +30,36 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+        <!-- HTTP сервер + REST контроллеры -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+        <!-- Геттеры/сеттеры/конструкторы через аннотации -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+        <!-- Тесты -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <!--Jackson XML — позволяет читать XML как Java объект -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+            <!-- Плагин который собирает проект в один jar файл -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
