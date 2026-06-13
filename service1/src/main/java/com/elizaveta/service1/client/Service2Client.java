@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class Service2Client {
         String url = service2BaseUrl + "/xml2format";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_XML);
+        headers.setContentType(new MediaType("text", "xml", StandardCharsets.UTF_8));
 
         HttpEntity<String> request = new HttpEntity<>(xml, headers);
 
