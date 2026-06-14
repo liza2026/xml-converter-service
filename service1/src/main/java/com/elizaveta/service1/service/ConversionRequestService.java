@@ -13,6 +13,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import com.elizaveta.service1.dao.PageResult;
+import com.elizaveta.service1.dto.ConversionFilter;
+import com.elizaveta.service1.dto.ConversionRequestDto;
+import com.elizaveta.service1.dto.PageResponse;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -66,6 +74,30 @@ public class ConversionRequestService {
                 processingTimeMs,
                 xmlTagsCount,
                 jsonKeysCount
+        );
+    }
+
+    public PageResponse<ConversionRequestDto> getPage(ConversionFilter filter, int page, int size) {
+
+        PageResult<ConversionRequest> result = conversionRequestDao.findWithFilters(filter, page, size);
+
+        List<ConversionRequestDto> dtos = result.getContent().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+
+        int totalPages = (int) Math.ceil((double) result.getTotalElements() / size);
+
+        return new PageResponse<>(dtos, page, size, result.getTotalElements(), totalPages);
+    }
+
+    private ConversionRequestDto toDto(ConversionRequest entity) {
+        return new ConversionRequestDto(
+                entity.getId(),
+                entity.getJsonResult(),
+                entity.getRequestDate(),
+                entity.getProcessingTimeMs(),
+                entity.getXmlTagsCount(),
+                entity.getJsonKeysCount()
         );
     }
 }

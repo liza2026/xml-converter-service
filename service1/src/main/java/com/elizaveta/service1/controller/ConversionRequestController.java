@@ -10,6 +10,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.elizaveta.service1.dto.ConversionFilter;
+import com.elizaveta.service1.dto.ConversionRequestDto;
+import com.elizaveta.service1.dto.PageResponse;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDateTime;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -36,6 +45,65 @@ public class ConversionRequestController {
 
         } catch (RuntimeException e) {
             log.error("Ошибка обработки запроса: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping(value = "/page", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PageResponse<ConversionRequestDto>> getPage(
+
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime requestDateFrom,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime requestDateTo,
+
+            @RequestParam(required = false) Long processingTimeMin,
+            @RequestParam(required = false) Long processingTimeMax,
+
+            @RequestParam(required = false) Integer xmlTagsCountMin,
+            @RequestParam(required = false) Integer xmlTagsCountMax,
+
+            @RequestParam(required = false) Integer jsonKeysCountMin,
+            @RequestParam(required = false) Integer jsonKeysCountMax
+    ) {
+
+        log.info("Получен запрос на /page: page={}, size={}", page, size);
+        log.info("Фильтры: requestDateFrom={}, requestDateTo={}, " +
+                        "processingTimeMin={}, processingTimeMax={}, " +
+                        "xmlTagsCountMin={}, xmlTagsCountMax={}, " +
+                        "jsonKeysCountMin={}, jsonKeysCountMax={}",
+                requestDateFrom, requestDateTo,
+                processingTimeMin, processingTimeMax,
+                xmlTagsCountMin, xmlTagsCountMax,
+                jsonKeysCountMin, jsonKeysCountMax);
+
+        ConversionFilter filter = new ConversionFilter(
+                requestDateFrom, requestDateTo,
+                processingTimeMin, processingTimeMax,
+                xmlTagsCountMin, xmlTagsCountMax,
+                jsonKeysCountMin, jsonKeysCountMax
+        );
+
+        try {
+            PageResponse<ConversionRequestDto> response =
+                    conversionRequestService.getPage(filter, page, size);
+
+            log.info("Успешно возвращено {} записей из {} (страница {} из {})",
+                    response.getContent().size(),
+                    response.getTotalElements(),
+                    response.getPage(),
+                    response.getTotalPages());
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            log.error("Ошибка обработки /page: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
