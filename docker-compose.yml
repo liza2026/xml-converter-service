@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: converter_db
+      POSTGRES_USER: converter_user
+      POSTGRES_PASSWORD: converter_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - converter-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U converter_user -d converter_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  service2:
+    build:
+      context: ./service2
+      dockerfile: Dockerfile
+    container_name: service2
+    ports:
+      - "8081:8081"
+    networks:
+      - converter-network
+
+  service1:
+    build:
+      context: ./service1
+      dockerfile: Dockerfile
+    container_name: service1
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/converter_db
+      SPRING_DATASOURCE_USERNAME: converter_user
+      SPRING_DATASOURCE_PASSWORD: converter_pass
+
+      SERVICE2_BASE_URL: http://service2:8081
+    networks:
+      - converter-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      service2:
+        condition: service_started
+
+networks:
+  converter-network:
+    driver: bridge
+
+volumes:
+  pgdata:
