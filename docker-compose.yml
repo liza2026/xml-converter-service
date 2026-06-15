@@ -6,17 +6,17 @@ services:
     image: postgres:15
     container_name: postgres
     environment:
-      POSTGRES_DB: converter_db
-      POSTGRES_USER: converter_user
-      POSTGRES_PASSWORD: converter_pass
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - converter-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U converter_user -d converter_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,9 +27,11 @@ services:
       dockerfile: Dockerfile
     container_name: service2
     ports:
-      - "8081:8081"
+      - "${SERVICE2_PORT}:8081"
     networks:
       - converter-network
+    environment:
+      SERVER_PORT: 8081
 
   service1:
     build:
@@ -37,13 +39,14 @@ services:
       dockerfile: Dockerfile
     container_name: service1
     ports:
-      - "8080:8080"
+      - "${SERVICE1_PORT}:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/converter_db
-      SPRING_DATASOURCE_USERNAME: converter_user
-      SPRING_DATASOURCE_PASSWORD: converter_pass
-
-      SERVICE2_BASE_URL: http://service2:8081
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      
+      SERVICE2_BASE_URL: ${SERVICE2_BASE_URL}
+      SERVER_PORT: 8080
     networks:
       - converter-network
     depends_on:

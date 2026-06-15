@@ -17,9 +17,6 @@ public class HibernateConfig {
     @Value("${spring.datasource.password}")
     private String password;
 
-    @Value("${spring.datasource.driver-class-name}")
-    private String driverClassName;
-
     @Value("${hibernate.dialect}")
     private String dialect;
 
@@ -31,13 +28,12 @@ public class HibernateConfig {
 
     @Bean
     public SessionFactory sessionFactory() {
-
         org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
 
         configuration.setProperty("hibernate.connection.url", url);
         configuration.setProperty("hibernate.connection.username", username);
         configuration.setProperty("hibernate.connection.password", password);
-        configuration.setProperty("hibernate.connection.driver_class", driverClassName);
+        configuration.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
 
         configuration.setProperty("hibernate.dialect", dialect);
         configuration.setProperty("hibernate.show_sql", showSql);
