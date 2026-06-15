@@ -29,9 +29,6 @@ public class HibernateConfig {
     @Value("${hibernate.format_sql}")
     private String formatSql;
 
-    @Value("${hibernate.hbm2ddl.auto}")
-    private String hbm2ddlAuto;
-
     @Bean
     public SessionFactory sessionFactory() {
 
@@ -45,7 +42,7 @@ public class HibernateConfig {
         configuration.setProperty("hibernate.dialect", dialect);
         configuration.setProperty("hibernate.show_sql", showSql);
         configuration.setProperty("hibernate.format_sql", formatSql);
-        configuration.setProperty("hibernate.hbm2ddl.auto", hbm2ddlAuto);
+        configuration.setProperty("hibernate.hbm2ddl.auto", "none");
 
         configuration.addAnnotatedClass(ConversionRequest.class);
 
