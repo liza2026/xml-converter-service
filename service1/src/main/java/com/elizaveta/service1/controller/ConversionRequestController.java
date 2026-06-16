@@ -2,6 +2,7 @@ package com.elizaveta.service1.controller;
 
 import com.elizaveta.service1.dto.ConversionResponse;
 import com.elizaveta.service1.service.ConversionRequestService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
+import java.util.Enumeration;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -64,10 +67,28 @@ public class ConversionRequestController {
             @RequestParam(required = false) Integer xmlTagsCountMax,
 
             @RequestParam(required = false) Integer jsonKeysCountMin,
-            @RequestParam(required = false) Integer jsonKeysCountMax
+            @RequestParam(required = false) Integer jsonKeysCountMax,
+            HttpServletRequest request
     ) {
-
         log.info("Получен запрос на /page: page={}, size={}", page, size);
+
+        Set<String> allowedParams = Set.of(
+                "page", "size",
+                "requestDateFrom", "requestDateTo",
+                "processingTimeMin", "processingTimeMax",
+                "xmlTagsCountMin", "xmlTagsCountMax",
+                "jsonKeysCountMin", "jsonKeysCountMax"
+        );
+
+        Enumeration<String> paramNames = request.getParameterNames();
+        while (paramNames.hasMoreElements()) {
+            String paramName = paramNames.nextElement();
+            if (!allowedParams.contains(paramName)) {
+                log.warn("Обнаружен неизвестный параметр: {}", paramName);
+                throw new IllegalArgumentException("Неизвестный параметр: " + paramName);
+            }
+        }
+
         log.info("Фильтры: requestDateFrom={}, requestDateTo={}, " +
                         "processingTimeMin={}, processingTimeMax={}, " +
                         "xmlTagsCountMin={}, xmlTagsCountMax={}, " +
