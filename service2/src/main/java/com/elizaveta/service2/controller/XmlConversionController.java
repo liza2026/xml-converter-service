@@ -27,19 +27,12 @@ public class XmlConversionController {
         log.info("Получен запрос на конвертацию из XML в JSON");
         log.debug("Тело запроса: {}", xml);
 
-        try {
-            Object result = conversionService.convert(xml);
+        Object result = conversionService.convert(xml);
 
-            XmlConversionResponse response = new XmlConversionResponse(result);
+        XmlConversionResponse response = new XmlConversionResponse(result);
 
-            log.info("Запрос успешно обработан, возвращаем ответ");
+        log.info("Запрос успешно обработан, возвращаем ответ");
 
-            return ResponseEntity.ok(response);
-
-        } catch (RuntimeException e) {
-            log.error("Ошибка обработки запроса: {}", e.getMessage());
-
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(response);
     }
 }

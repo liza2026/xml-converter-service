@@ -26,7 +26,8 @@ public class ConversionStatsUtil {
             return document.getElementsByTagName("*").getLength();
 
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка подсчёта тегов XML: " + e.getMessage(), e);
+            throw new IllegalArgumentException(
+                    "Некорректный XML: " + e.getMessage(), e);
         }
     }
 

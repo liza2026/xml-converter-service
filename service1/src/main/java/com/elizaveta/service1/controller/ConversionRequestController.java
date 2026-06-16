@@ -36,17 +36,11 @@ public class ConversionRequestController {
         log.info("Получен запрос на /request");
         log.debug("Тело запроса: {}", xml);
 
-        try {
-            ConversionResponse response = conversionRequestService.processRequest(xml);
+        ConversionResponse response = conversionRequestService.processRequest(xml);
 
-            log.info("Запрос успешно обработан, id={}", response.getId());
+        log.info("Запрос успешно обработан, id={}", response.getId());
 
-            return ResponseEntity.ok(response);
-
-        } catch (RuntimeException e) {
-            log.error("Ошибка обработки запроса: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(value = "/page", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -90,21 +84,15 @@ public class ConversionRequestController {
                 jsonKeysCountMin, jsonKeysCountMax
         );
 
-        try {
-            PageResponse<ConversionRequestDto> response =
-                    conversionRequestService.getPage(filter, page, size);
+        PageResponse<ConversionRequestDto> response =
+                conversionRequestService.getPage(filter, page, size);
 
-            log.info("Успешно возвращено {} записей из {} (страница {} из {})",
-                    response.getContent().size(),
-                    response.getTotalElements(),
-                    response.getPage(),
-                    response.getTotalPages());
+        log.info("Успешно возвращено {} записей из {} (страница {} из {})",
+                response.getContent().size(),
+                response.getTotalElements(),
+                response.getPage(),
+                response.getTotalPages());
 
-            return ResponseEntity.ok(response);
-
-        } catch (RuntimeException e) {
-            log.error("Ошибка обработки /page: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(response);
     }
 }

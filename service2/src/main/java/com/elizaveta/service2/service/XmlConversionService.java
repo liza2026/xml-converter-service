@@ -32,8 +32,10 @@ public class XmlConversionService {
             return javaObject;
 
         } catch (Exception e) {
-            log.error("Ошибка конвертации XML: {}", e.getMessage());
-            throw new RuntimeException("Не удалось конвертировать XML: " + e.getMessage(), e);
+            log.error("Ошибка конвертации XML", e);
+
+            throw new IllegalArgumentException(
+                    "Не удалось конвертировать XML: " + e.getMessage(), e);
         }
     }
 }
