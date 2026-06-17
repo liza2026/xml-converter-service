@@ -1,14 +1,10 @@
 package com.elizaveta.service1.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ConversionFilter {
 
     private LocalDateTime requestDateFrom;
