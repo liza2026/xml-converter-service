@@ -2,6 +2,7 @@ package com.elizaveta.service1.controller;
 
 import com.elizaveta.service1.dto.*;
 import com.elizaveta.service1.service.ConversionRequestService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -42,7 +43,7 @@ public class ConversionRequestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<PageResponse<ConversionRequestDto>> getPage(
-            @RequestBody(required = false) PageRequestDto pageRequest
+            @Valid @RequestBody(required = false) PageRequestDto pageRequest
     ) {
 
         if (pageRequest == null) {
