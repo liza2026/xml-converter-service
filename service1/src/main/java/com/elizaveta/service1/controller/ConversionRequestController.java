@@ -20,7 +20,7 @@ public class ConversionRequestController {
 
     @PostMapping(
             value = "/request",
-            consumes = MediaType.TEXT_XML_VALUE,
+            consumes = {MediaType.TEXT_XML_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<ConversionResponse> handleRequest(
