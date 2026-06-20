@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import com.elizaveta.service1.common.PageResult;
 import com.elizaveta.service1.dto.ConversionFilter;
 import com.elizaveta.service1.dto.ConversionRequestDto;
 import com.elizaveta.service1.dto.PageResponse;
@@ -82,15 +81,14 @@ public class ConversionRequestService {
     @Transactional(readOnly = true)
     public PageResponse<ConversionRequestDto> getPage(ConversionFilter filter, int page, int size) {
 
-        PageResult<ConversionRequest> result = conversionRequestDao.findWithFilters(filter, page, size);
+        List<ConversionRequest> content = conversionRequestDao.findContent(filter, page, size);
+        long totalElements = conversionRequestDao.countTotal(filter);
 
-        List<ConversionRequestDto> dtos = result.getContent().stream()
+        List<ConversionRequestDto> dtos = content.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
 
-        int totalPages = (int) Math.ceil((double) result.getTotalElements() / size);
-
-        return new PageResponse<>(dtos, page, size, result.getTotalElements(), totalPages);
+        return new PageResponse<>(dtos, page, size, totalElements);
     }
 
     private ConversionRequestDto toDto(ConversionRequest entity) {

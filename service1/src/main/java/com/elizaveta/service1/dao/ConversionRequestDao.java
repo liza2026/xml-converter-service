@@ -1,6 +1,5 @@
 package com.elizaveta.service1.dao;
 
-import com.elizaveta.service1.common.PageResult;
 import com.elizaveta.service1.entity.ConversionRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,7 @@ public class ConversionRequestDao {
         return entity;
     }
 
-    public PageResult<ConversionRequest> findWithFilters(ConversionFilter filter, int page, int size) {
+    public List<ConversionRequest> findContent(ConversionFilter filter, int page, int size) {
 
         Session session = sessionFactory.getCurrentSession();
 
@@ -48,10 +47,17 @@ public class ConversionRequestDao {
                 .where(buildPredicates(cb, root, filter))
                 .orderBy(cb.desc(root.get("requestDate")));
 
-        List<ConversionRequest> content = session.createQuery(dataQuery)
+        return session.createQuery(dataQuery)
                 .setFirstResult(page * size)
                 .setMaxResults(size)
                 .getResultList();
+    }
+
+    public long countTotal(ConversionFilter filter) {
+
+        Session session = sessionFactory.getCurrentSession();
+
+        CriteriaBuilder cb = session.getCriteriaBuilder();
 
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<ConversionRequest> countRoot = countQuery.from(ConversionRequest.class);
@@ -59,9 +65,7 @@ public class ConversionRequestDao {
         countQuery.select(cb.count(countRoot))
                 .where(buildPredicates(cb, countRoot, filter));
 
-        Long total = session.createQuery(countQuery).getSingleResult();
-
-        return new PageResult<>(content, total);
+        return session.createQuery(countQuery).getSingleResult();
     }
 
     private Predicate[] buildPredicates(CriteriaBuilder cb, Root<ConversionRequest> root, ConversionFilter filter) {
