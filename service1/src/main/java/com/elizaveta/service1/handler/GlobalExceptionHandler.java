@@ -18,8 +18,11 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleBadRequest(
+            IllegalArgumentException ex, WebRequest request) {
+
         log.warn("Ошибка запроса: {}", ex.getMessage());
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -70,7 +73,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(NoHandlerFoundException ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            NoHandlerFoundException ex, WebRequest request) {
+
         log.warn("Запрошен несуществующий URL: {}", ex.getRequestURL());
 
         ErrorResponse error = new ErrorResponse(
@@ -85,8 +90,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleGeneric(
+            Exception ex, WebRequest request) {
+
         log.error("Внутренняя ошибка", ex);
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

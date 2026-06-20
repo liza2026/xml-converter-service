@@ -37,6 +37,7 @@ public class ConversionRequest {
     public ConversionRequest(String jsonResult, LocalDateTime requestDate,
                              Long processingTimeMs, Integer xmlTagsCount,
                              Integer jsonKeysCount) {
+
         this.jsonResult = jsonResult;
         this.requestDate = requestDate;
         this.processingTimeMs = processingTimeMs;

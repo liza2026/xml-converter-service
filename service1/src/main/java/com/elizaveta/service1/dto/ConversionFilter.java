@@ -1,10 +1,10 @@
 package com.elizaveta.service1.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 
 @Data

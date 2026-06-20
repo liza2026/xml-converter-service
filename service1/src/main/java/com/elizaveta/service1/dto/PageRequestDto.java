@@ -1,10 +1,9 @@
 package com.elizaveta.service1.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)

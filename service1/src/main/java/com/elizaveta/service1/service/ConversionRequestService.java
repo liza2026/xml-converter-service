@@ -2,22 +2,20 @@ package com.elizaveta.service1.service;
 
 import com.elizaveta.service1.client.Service2Client;
 import com.elizaveta.service1.dao.ConversionRequestDao;
+import com.elizaveta.service1.dto.ConversionFilter;
+import com.elizaveta.service1.dto.ConversionRequestDto;
 import com.elizaveta.service1.dto.ConversionResponse;
+import com.elizaveta.service1.dto.PageResponse;
 import com.elizaveta.service1.entity.ConversionRequest;
 import com.elizaveta.service1.util.ConversionStatsUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
-import com.elizaveta.service1.dto.ConversionFilter;
-import com.elizaveta.service1.dto.ConversionRequestDto;
-import com.elizaveta.service1.dto.PageResponse;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,6 +90,7 @@ public class ConversionRequestService {
     }
 
     private ConversionRequestDto toDto(ConversionRequest entity) {
+
         return new ConversionRequestDto(
                 entity.getId(),
                 entity.getJsonResult(),

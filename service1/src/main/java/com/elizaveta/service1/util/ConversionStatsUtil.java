@@ -11,10 +11,8 @@ import java.util.Map;
 
 public class ConversionStatsUtil {
 
-    private ConversionStatsUtil() {
-    }
-
     public static int countXmlTags(String xml) {
+
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();

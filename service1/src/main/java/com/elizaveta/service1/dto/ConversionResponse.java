@@ -12,14 +12,9 @@ import java.time.LocalDateTime;
 public class ConversionResponse {
 
     private Long id;
-
     private Object result;
-
     private LocalDateTime requestDate;
-
     private Long processingTimeMs;
-
     private Integer xmlTagsCount;
-
     private Integer jsonKeysCount;
 }

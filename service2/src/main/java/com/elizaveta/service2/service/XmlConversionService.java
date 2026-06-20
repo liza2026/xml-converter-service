@@ -15,6 +15,7 @@ public class XmlConversionService {
     private final ObjectMapper objectMapper;
 
     public Object convert(String xml) {
+
         log.debug("Начало конвертации XML. Длина входной строки: {} символов", xml.length());
         log.trace("Содержимое XML: {}", xml);
 

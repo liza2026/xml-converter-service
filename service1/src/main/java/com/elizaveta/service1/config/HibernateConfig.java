@@ -32,6 +32,7 @@ public class HibernateConfig {
 
     @Bean
     public DataSource dataSource() {
+
         HikariConfig hikariConfig = new HikariConfig();
 
         hikariConfig.setJdbcUrl(url);
@@ -51,6 +52,7 @@ public class HibernateConfig {
 
     @Bean
     public SessionFactory sessionFactory(DataSource dataSource) {
+
         org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
 
         configuration.getProperties().put("hibernate.connection.datasource", dataSource);
