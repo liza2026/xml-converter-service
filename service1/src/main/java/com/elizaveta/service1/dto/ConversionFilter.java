@@ -1,5 +1,6 @@
 package com.elizaveta.service1.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class ConversionFilter {
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
