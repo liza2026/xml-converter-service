@@ -10,10 +10,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import com.elizaveta.service1.dao.PageResult;
+import com.elizaveta.service1.common.PageResult;
 import com.elizaveta.service1.dto.ConversionFilter;
 import com.elizaveta.service1.dto.ConversionRequestDto;
 import com.elizaveta.service1.dto.PageResponse;
@@ -31,6 +32,7 @@ public class ConversionRequestService {
 
     private final ObjectMapper objectMapper;
 
+    @Transactional
     public ConversionResponse processRequest(String xml) {
 
         long startTime = System.currentTimeMillis();
@@ -77,6 +79,7 @@ public class ConversionRequestService {
         );
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<ConversionRequestDto> getPage(ConversionFilter filter, int page, int size) {
 
         PageResult<ConversionRequest> result = conversionRequestDao.findWithFilters(filter, page, size);

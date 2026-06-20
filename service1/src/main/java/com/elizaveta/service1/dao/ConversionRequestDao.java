@@ -1,11 +1,11 @@
 package com.elizaveta.service1.dao;
 
+import com.elizaveta.service1.common.PageResult;
 import com.elizaveta.service1.entity.ConversionRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 import com.elizaveta.service1.dto.ConversionFilter;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -26,55 +26,42 @@ public class ConversionRequestDao {
 
     public ConversionRequest save(ConversionRequest entity) {
 
-        try (Session session = sessionFactory.openSession()) {
+        Session session = sessionFactory.getCurrentSession();
 
-            Transaction transaction = session.beginTransaction();
+        session.persist(entity);
 
-            try {
-                session.persist(entity);
+        log.debug("Сохранена запись в БД с id={}", entity.getId());
 
-                transaction.commit();
-
-                log.debug("Сохранена запись в БД с id={}", entity.getId());
-
-                return entity;
-
-            } catch (Exception e) {
-                transaction.rollback();
-                log.error("Ошибка сохранения в БД: {}", e.getMessage());
-                throw e;
-            }
-        }
+        return entity;
     }
 
     public PageResult<ConversionRequest> findWithFilters(ConversionFilter filter, int page, int size) {
 
-        try (Session session = sessionFactory.openSession()) {
+        Session session = sessionFactory.getCurrentSession();
 
-            CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
 
-            CriteriaQuery<ConversionRequest> dataQuery = cb.createQuery(ConversionRequest.class);
-            Root<ConversionRequest> root = dataQuery.from(ConversionRequest.class);
+        CriteriaQuery<ConversionRequest> dataQuery = cb.createQuery(ConversionRequest.class);
+        Root<ConversionRequest> root = dataQuery.from(ConversionRequest.class);
 
-            dataQuery.select(root)
-                    .where(buildPredicates(cb, root, filter))
-                    .orderBy(cb.desc(root.get("requestDate")));
+        dataQuery.select(root)
+                .where(buildPredicates(cb, root, filter))
+                .orderBy(cb.desc(root.get("requestDate")));
 
-            List<ConversionRequest> content = session.createQuery(dataQuery)
-                    .setFirstResult(page * size)
-                    .setMaxResults(size)
-                    .getResultList();
+        List<ConversionRequest> content = session.createQuery(dataQuery)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
 
-            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-            Root<ConversionRequest> countRoot = countQuery.from(ConversionRequest.class);
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<ConversionRequest> countRoot = countQuery.from(ConversionRequest.class);
 
-            countQuery.select(cb.count(countRoot))
-                    .where(buildPredicates(cb, countRoot, filter));
+        countQuery.select(cb.count(countRoot))
+                .where(buildPredicates(cb, countRoot, filter));
 
-            Long total = session.createQuery(countQuery).getSingleResult();
+        Long total = session.createQuery(countQuery).getSingleResult();
 
-            return new PageResult<>(content, total);
-        }
+        return new PageResult<>(content, total);
     }
 
     private Predicate[] buildPredicates(CriteriaBuilder cb, Root<ConversionRequest> root, ConversionFilter filter) {

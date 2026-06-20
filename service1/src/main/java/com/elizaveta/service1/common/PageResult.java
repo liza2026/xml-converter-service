@@ -1,4 +1,4 @@
-package com.elizaveta.service1.dao;
+package com.elizaveta.service1.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
