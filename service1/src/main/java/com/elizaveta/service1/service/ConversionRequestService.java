@@ -7,6 +7,7 @@ import com.elizaveta.service1.dto.ConversionRequestDTO;
 import com.elizaveta.service1.dto.ConversionResponseDTO;
 import com.elizaveta.service1.dto.PageResponseDTO;
 import com.elizaveta.service1.entity.ConversionRequest;
+import com.elizaveta.service1.mapper.ConversionRequestMapper;
 import com.elizaveta.service1.util.ConversionStatsUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ public class ConversionRequestService {
 
     private final Service2Client service2Client;
     private final ConversionRequestDAO conversionRequestDao;
+    private final ConversionRequestMapper conversionRequestMapper;
 
     private final ObjectMapper objectMapper;
 
@@ -83,21 +85,9 @@ public class ConversionRequestService {
         long totalElements = conversionRequestDao.countTotal(filter);
 
         List<ConversionRequestDTO> dtos = content.stream()
-                .map(this::toDto)
+                .map(conversionRequestMapper::toDto)
                 .collect(Collectors.toList());
 
         return new PageResponseDTO<>(dtos, page, size, totalElements);
-    }
-
-    private ConversionRequestDTO toDto(ConversionRequest entity) {
-
-        return new ConversionRequestDTO(
-                entity.getId(),
-                entity.getJsonResult(),
-                entity.getRequestDate(),
-                entity.getProcessingTimeMs(),
-                entity.getXmlTagsCount(),
-                entity.getJsonKeysCount()
-        );
     }
 }
