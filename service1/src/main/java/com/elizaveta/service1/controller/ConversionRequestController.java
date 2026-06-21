@@ -23,14 +23,14 @@ public class ConversionRequestController {
             consumes = {MediaType.TEXT_XML_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<ConversionResponse> handleRequest(
+    public ResponseEntity<ConversionResponseDTO> handleRequest(
             @RequestBody String xml
     ) {
 
         log.info("Получен запрос на /request");
         log.debug("Тело запроса: {}", xml);
 
-        ConversionResponse response = conversionRequestService.processRequest(xml);
+        ConversionResponseDTO response = conversionRequestService.processRequest(xml);
 
         log.info("Запрос успешно обработан, id={}", response.getId());
 
@@ -42,23 +42,23 @@ public class ConversionRequestController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<PageResponse<ConversionRequestDto>> getPage(
-            @Valid @RequestBody(required = false) PageRequestDto pageRequest
+    public ResponseEntity<PageResponseDTO<ConversionRequestDTO>> getPage(
+            @Valid @RequestBody(required = false) PageRequestDTO pageRequest
     ) {
 
         if (pageRequest == null) {
-            pageRequest = new PageRequestDto();
+            pageRequest = new PageRequestDTO();
         }
 
         log.info("Получен запрос на /page: page={}, size={}",
                 pageRequest.getPage(),
                 pageRequest.getSize());
 
-        ConversionFilter filter = pageRequest.getFilter();
+        ConversionFilterDTO filter = pageRequest.getFilter();
 
         log.info("Фильтры: {}", filter);
 
-        PageResponse<ConversionRequestDto> response =
+        PageResponseDTO<ConversionRequestDTO> response =
                 conversionRequestService.getPage(filter, pageRequest.getPage(), pageRequest.getSize());
 
         log.info("Успешно возвращено {} записей из {} (страница {} из {})",

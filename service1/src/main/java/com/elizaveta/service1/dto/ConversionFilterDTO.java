@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class ConversionFilter {
+public class ConversionFilterDTO {
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime requestDateFrom;

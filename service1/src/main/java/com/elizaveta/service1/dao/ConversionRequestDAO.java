@@ -1,6 +1,6 @@
 package com.elizaveta.service1.dao;
 
-import com.elizaveta.service1.dto.ConversionFilter;
+import com.elizaveta.service1.dto.ConversionFilterDTO;
 import com.elizaveta.service1.entity.ConversionRequest;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class ConversionRequestDao {
+public class ConversionRequestDAO {
 
     private final SessionFactory sessionFactory;
 
@@ -34,7 +34,7 @@ public class ConversionRequestDao {
         return entity;
     }
 
-    public List<ConversionRequest> findContent(ConversionFilter filter, int page, int size) {
+    public List<ConversionRequest> findContent(ConversionFilterDTO filter, int page, int size) {
 
         Session session = sessionFactory.getCurrentSession();
 
@@ -53,7 +53,7 @@ public class ConversionRequestDao {
                 .getResultList();
     }
 
-    public long countTotal(ConversionFilter filter) {
+    public long countTotal(ConversionFilterDTO filter) {
 
         Session session = sessionFactory.getCurrentSession();
 
@@ -68,7 +68,7 @@ public class ConversionRequestDao {
         return session.createQuery(countQuery).getSingleResult();
     }
 
-    private Predicate[] buildPredicates(CriteriaBuilder cb, Root<ConversionRequest> root, ConversionFilter filter) {
+    private Predicate[] buildPredicates(CriteriaBuilder cb, Root<ConversionRequest> root, ConversionFilterDTO filter) {
 
         List<Predicate> predicates = new ArrayList<>();
 

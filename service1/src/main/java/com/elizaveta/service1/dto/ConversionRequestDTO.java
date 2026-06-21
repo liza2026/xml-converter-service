@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConversionResponse {
+public class ConversionRequestDTO {
 
     private Long id;
-    private Object result;
+    private String jsonResult;
     private LocalDateTime requestDate;
     private Long processingTimeMs;
     private Integer xmlTagsCount;

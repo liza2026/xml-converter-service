@@ -1,6 +1,6 @@
 package com.elizaveta.service1.handler;
 
-import com.elizaveta.service1.dto.ErrorResponse;
+import com.elizaveta.service1.dto.ErrorResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +18,12 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(
+    public ResponseEntity<ErrorResponseDTO> handleBadRequest(
             IllegalArgumentException ex, WebRequest request) {
 
         log.warn("Ошибка запроса: {}", ex.getMessage());
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
@@ -35,12 +35,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+    public ResponseEntity<ErrorResponseDTO> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, WebRequest request) {
 
         log.warn("Некорректный формат запроса: {}", ex.getMessage());
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(
+    public ResponseEntity<ErrorResponseDTO> handleUnsupportedMediaType(
             HttpMediaTypeNotSupportedException ex, WebRequest request) {
 
         log.warn("Неподдерживаемый Content-Type запроса: {}", ex.getMessage());
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
                 ? "Не указан заголовок Content-Type"
                 : "Неподдерживаемый Content-Type: " + ex.getContentType();
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
                 "Unsupported Media Type",
@@ -73,12 +73,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(
             NoHandlerFoundException ex, WebRequest request) {
 
         log.warn("Запрошен несуществующий URL: {}", ex.getRequestURL());
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
                 "Not Found",
@@ -90,12 +90,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(
+    public ResponseEntity<ErrorResponseDTO> handleGeneric(
             Exception ex, WebRequest request) {
 
         log.error("Внутренняя ошибка", ex);
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",

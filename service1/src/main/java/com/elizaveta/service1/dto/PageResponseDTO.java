@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PageResponse<T> {
+public class PageResponseDTO<T> {
 
     private final List<T> content;
     private final int page;
@@ -13,7 +13,7 @@ public class PageResponse<T> {
     private final long totalElements;
     private final int totalPages;
 
-    public PageResponse(List<T> content, int page, int size, long totalElements) {
+    public PageResponseDTO(List<T> content, int page, int size, long totalElements) {
         this.content = content;
         this.page = page;
         this.size = size;

@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class PageRequestDto {
+public class PageRequestDTO {
 
     @Min(value = 0, message = "Номер страницы должен быть не меньше 0")
     private int page = 0;
@@ -16,5 +16,5 @@ public class PageRequestDto {
     private int size = 10;
 
     @Valid
-    private ConversionFilter filter = new ConversionFilter();
+    private ConversionFilterDTO filter = new ConversionFilterDTO();
 }

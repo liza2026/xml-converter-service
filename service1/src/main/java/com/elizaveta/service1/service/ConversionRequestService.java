@@ -1,11 +1,11 @@
 package com.elizaveta.service1.service;
 
 import com.elizaveta.service1.client.Service2Client;
-import com.elizaveta.service1.dao.ConversionRequestDao;
-import com.elizaveta.service1.dto.ConversionFilter;
-import com.elizaveta.service1.dto.ConversionRequestDto;
-import com.elizaveta.service1.dto.ConversionResponse;
-import com.elizaveta.service1.dto.PageResponse;
+import com.elizaveta.service1.dao.ConversionRequestDAO;
+import com.elizaveta.service1.dto.ConversionFilterDTO;
+import com.elizaveta.service1.dto.ConversionRequestDTO;
+import com.elizaveta.service1.dto.ConversionResponseDTO;
+import com.elizaveta.service1.dto.PageResponseDTO;
 import com.elizaveta.service1.entity.ConversionRequest;
 import com.elizaveta.service1.util.ConversionStatsUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 public class ConversionRequestService {
 
     private final Service2Client service2Client;
-    private final ConversionRequestDao conversionRequestDao;
+    private final ConversionRequestDAO conversionRequestDao;
 
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ConversionResponse processRequest(String xml) {
+    public ConversionResponseDTO processRequest(String xml) {
 
         long startTime = System.currentTimeMillis();
 
@@ -66,7 +66,7 @@ public class ConversionRequestService {
         ConversionRequest saved = conversionRequestDao.save(entity);
         log.info("Запрос обработан и сохранён в БД, id={}", saved.getId());
 
-        return new ConversionResponse(
+        return new ConversionResponseDTO(
                 saved.getId(),
                 jsonResult,
                 requestDate,
@@ -77,21 +77,21 @@ public class ConversionRequestService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ConversionRequestDto> getPage(ConversionFilter filter, int page, int size) {
+    public PageResponseDTO<ConversionRequestDTO> getPage(ConversionFilterDTO filter, int page, int size) {
 
         List<ConversionRequest> content = conversionRequestDao.findContent(filter, page, size);
         long totalElements = conversionRequestDao.countTotal(filter);
 
-        List<ConversionRequestDto> dtos = content.stream()
+        List<ConversionRequestDTO> dtos = content.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
 
-        return new PageResponse<>(dtos, page, size, totalElements);
+        return new PageResponseDTO<>(dtos, page, size, totalElements);
     }
 
-    private ConversionRequestDto toDto(ConversionRequest entity) {
+    private ConversionRequestDTO toDto(ConversionRequest entity) {
 
-        return new ConversionRequestDto(
+        return new ConversionRequestDTO(
                 entity.getId(),
                 entity.getJsonResult(),
                 entity.getRequestDate(),
