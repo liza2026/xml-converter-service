@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -32,6 +34,37 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
+
+        // Берем только первую ошибку
+        String firstError = ex.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .findFirst()
+                .map(error -> {
+                    if (error instanceof FieldError) {
+                        String field = ((FieldError) error).getField();
+                        return field + ": " + error.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .orElse("Ошибка валидации");
+
+        log.warn("Ошибка валидации: {}", firstError);
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                firstError,
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
