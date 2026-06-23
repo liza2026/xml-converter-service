@@ -11,6 +11,17 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * HTTP-клиент service 1 для обращения к service 2.
+ * <p>
+ * В Docker Compose service 2 виден по имени контейнера ({@code service2}),
+ * адрес берётся из {@code service2.base-url} (переменная окружения
+ * {@code SERVICE2_BASE_URL}), что позволяет service 1 не знать жёстко
+ * прописанный хост/порт. Связь синхронная: service 1 блокируется на время
+ * ответа service 2, отдельного circuit breaker или retry нет — если service 2
+ * недоступен или вернул ошибку, запрос к {@code /request} в service 1
+ * целиком завершится ошибкой и ничего не будет сохранено в БД.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

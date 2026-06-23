@@ -20,6 +20,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Главный оркестратор service 1: связывает воедино вызов service 2 и
+ * сохранение результата в PostgreSQL.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,26 @@ public class ConversionRequestService {
 
     private final ObjectMapper objectMapper;
 
+    /**
+     * Выполняет полный цикл обработки одного запроса на конвертацию:
+     * вызов service 2 -> подсчёт статистики -> сохранение в БД.
+     * <p>
+     * Время обработки ({@code processingTimeMs}) считается от начала метода
+     * до момента сериализации — то есть включает в себя сетевую задержку
+     * похода в service 2, но не включает время записи в БД. Вся операция
+     * выполняется в рамках одной транзакции {@link Transactional}: если
+     * сохранение в БД не удастся, клиент получит ошибку, даже если service 2
+     * уже успешно сконвертировал XML.
+     *
+     * @param xml исходный XML, полученный контроллером от клиента
+     * @return DTO с результатом конвертации, присвоенным id записи в БД,
+     * временем обработки и статистикой по тегам/ключам
+     * @throws IllegalArgumentException если входной XML некорректен
+     *                                  (выбрасывается при подсчёте тегов до похода в service 2)
+     * @throws RuntimeException         если service 2 недоступен или вернул ошибку,
+     *                                  либо если результат не удалось сериализовать в JSON-строку
+     *                                  для сохранения в БД
+     */
     @Transactional
     public ConversionResponseDTO processRequest(String xml) {
 
@@ -78,6 +102,27 @@ public class ConversionRequestService {
         );
     }
 
+    /**
+     * Возвращает страницу истории обработанных запросов из БД с учётом
+     * фильтра.
+     * <p>
+     * Делегирует выборку и подсчёт общего количества записей в
+     * {@link ConversionRequestDAO}: данные и общее количество элементов
+     * запрашиваются двумя отдельными запросами к БД (один — за срезом
+     * данных через {@code LIMIT}/{@code OFFSET}, другой — за {@code COUNT}),
+     * оба — в рамках одной read-only транзакции, чтобы оба запроса видели
+     * согласованный снимок данных. Сущности {@link ConversionRequestDTO},
+     * полученные из DAO, преобразуются в {@link ConversionRequestDTO} через
+     * {@link ConversionRequestMapper}.
+     *
+     * @param filter критерии фильтрации (диапазоны даты запроса, времени
+     *               обработки, количества XML-тегов и JSON-ключей);
+     *               все непустые условия фильтра комбинируются через AND
+     * @param page   номер страницы, начиная с 0
+     * @param size   размер страницы
+     * @return страница с данными, текущими параметрами пагинации и
+     * вычисленным общим количеством страниц
+     */
     @Transactional(readOnly = true)
     public PageResponseDTO<ConversionRequestDTO> getPage(ConversionFilterDTO filter, int page, int size) {
 
