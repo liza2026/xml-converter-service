@@ -7,11 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Реализует саму конвертацию XML -> JSON.
+ * Реализует двухэтапную конвертацию XML -> (XSLT) -> XML -> JSON.
  * <p>
- * Структура входного XML напрямую
- * становится структурой выходного JSON, без переименования полей или
- * изменения вложенности.
+ * <b>Этап 1 — XSLT-преобразование</b> (делегируется в {@link XsltTransformService}).
+ * <b>Этап 2 — XML -> JSON</b>: преобразованный XML читается Jackson {@link XmlMapper}
+ *  * в дерево Java-объектов, которое контроллер сериализует в JSON.
  */
 @Slf4j
 @Service
@@ -20,52 +20,40 @@ public class XmlConversionService {
 
     private final XmlMapper xmlMapper;
     private final ObjectMapper objectMapper;
+    private final XsltTransformService xsltTransformService;
 
     /**
-     * Преобразует XML-документ в JSON-совместимую Java-структуру
-     * (вложенные {@code Map}/{@code List}/примитивы), сохраняя исходную
-     * иерархию тегов и атрибутов один в один.
+     * Преобразует XML-документ в JSON-совместимую Java-структуру.
      * <p>
-     * Используются два отдельных Jackson-маппера: {@link XmlMapper} читает
-     * XML и строит из него обобщённое дерево объектов ({@code Object.class}),
-     * а {@link ObjectMapper} затем сериализует это дерево в JSON-строку —
-     * она используется только для лога ({@code log.debug}), чтобы видеть
-     * итоговый JSON.
-     * <p>
-     * Любая ошибка парсинга (невалидный XML, не соответствующий XML-спецификации
-     * ввод) перехватывается и оборачивается в {@link IllegalArgumentException}
-     * с понятным сообщением — это проблема в содержимом запроса, а не
-     * во внутренней логике сервиса.
+     * Сначала применяется XSLT (листовые теги → атрибуты), затем
+     * результирующий XML читается в обобщённое дерево объектов
+     * ({@code Map}/{@code List}/примитивы).
      *
      * @param xml исходный XML
      * @return результат конвертации — объект, который Jackson способен
      * сериализовать в JSON (как правило, {@code LinkedHashMap})
-     * @throws IllegalArgumentException если переданная строка не является
-     *                                  корректным XML и не может быть распарсена
+     * @throws IllegalArgumentException если XML невалиден или XSLT-преобразование завершилось ошибкой
      */
     public Object convert(String xml) {
-
         log.debug("Начало конвертации XML. Длина входной строки: {} символов", xml.length());
         log.trace("Содержимое XML: {}", xml);
 
         try {
-            Object javaObject = xmlMapper.readValue(xml, Object.class);
+            String transformedXml = xsltTransformService.transform(xml);
 
-            log.debug("XML успешно распарсен в Java объект типа: {}",
+            Object javaObject = xmlMapper.readValue(transformedXml, Object.class);
+            log.debug("XML успешно распарсен в Java-объект типа: {}",
                     javaObject.getClass().getSimpleName());
 
             String jsonString = objectMapper.writeValueAsString(javaObject);
-
             log.debug("Результат конвертации в JSON: {}", jsonString);
             log.info("Конвертация успешно завершена");
 
             return javaObject;
 
         } catch (Exception e) {
-            log.error("Ошибка конвертации XML", e);
-
-            throw new IllegalArgumentException(
-                    "Не удалось конвертировать XML: " + e.getMessage(), e);
+            log.error("Внутренняя ошибка при обработке преобразованного XML", e);
+            throw new RuntimeException("Внутренняя ошибка конвертации", e);
         }
     }
 }
