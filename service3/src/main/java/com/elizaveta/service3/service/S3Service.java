@@ -85,7 +85,8 @@ public class S3Service {
      *
      * @param key ключ (имя) файла в бакете
      * @return массив байтов содержимого файла
-     * @throws RuntimeException если не удалось прочитать файл
+     * @throws RuntimeException   если не удалось прочитать файл
+     * @throws NoSuchKeyException если не удалось найти файл
      */
     public byte[] download(String key) {
 
@@ -99,6 +100,10 @@ public class S3Service {
         try (ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request)) {
             log.info("Файл успешно скачан: {}", key);
             return response.readAllBytes();
+        } catch (NoSuchKeyException e) {
+            throw NoSuchKeyException.builder()
+                    .message("Файл не найден: " + key)
+                    .build();
         } catch (IOException e) {
             log.error("Не удалось скачать файл: {}", key, e);
             throw new RuntimeException("Не удалось скачать файл: " + key, e);
@@ -139,10 +144,22 @@ public class S3Service {
      * Удаляет файл из S3-хранилища по его ключу.
      *
      * @param key ключ (имя) файла в бакете
+     * @throws NoSuchKeyException если не удалось найти файл
      */
     public void delete(String key) {
 
         log.debug("Удаление файла: {} из бакета: {}", key, bucketName);
+
+        try {
+            s3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build());
+        } catch (NoSuchKeyException e) {
+            throw NoSuchKeyException.builder()
+                    .message("Файл не найден: " + key)
+                    .build();
+        }
 
         DeleteObjectRequest request = DeleteObjectRequest.builder()
                 .bucket(bucketName)
