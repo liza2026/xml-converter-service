@@ -56,6 +56,11 @@ public class S3Service {
     public UploadResponseDTO upload(MultipartFile file) {
 
         String key = file.getOriginalFilename();
+
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Имя файла не может быть пустым");
+        }
+
         log.debug("Загрузка файла: {} в бакет: {}", key, bucketName);
 
         try {
@@ -89,6 +94,10 @@ public class S3Service {
      * @throws NoSuchKeyException если не удалось найти файл
      */
     public byte[] download(String key) {
+
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Ключ файла не может быть пустым");
+        }
 
         log.debug("Скачивание файла: {} из бакета: {}", key, bucketName);
 
@@ -147,6 +156,10 @@ public class S3Service {
      * @throws NoSuchKeyException если не удалось найти файл
      */
     public void delete(String key) {
+
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Ключ файла не может быть пустым");
+        }
 
         log.debug("Удаление файла: {} из бакета: {}", key, bucketName);
 
