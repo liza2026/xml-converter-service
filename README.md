@@ -1,6 +1,6 @@
 # xml-json-microservices
 
-Сервис преобразования данных из формата XML в JSON, реализованный в виде двух
+Сервис преобразования данных из формата XML в JSON, реализованный в виде трёх
 независимых Spring Boot микросервисов.
 
 ## Содержание
@@ -21,11 +21,17 @@
   недоступен (в смысле сценария использования — физически порт открыт, но
   предполагаемый путь обращения только через Service 1). Не хранит никакого
   состояния и ничего не пишет в БД.
+- **Service 3** — самостоятельный stateless-сервис для работы с S3-хранилищем.
+  Предоставляет API для загрузки, скачивания, просмотра списка и удаления
+  файлов. Не обращается к другим сервисам и не использует БД.
 - **PostgreSQL** — используется только Service 1, для хранения истории
   конвертаций. Схема БД управляется через Liquibase.
+- **MinIO** — S3-совместимое объектное хранилище, используется только
+  Service 3. Веб-консоль доступна на порту 9001.
 
-Все три компонента поднимаются в общей Docker-сети `converter-network` и
-видят друг друга по именам контейнеров (`service1`, `service2`, `postgres`).
+Все компоненты поднимаются в общей Docker-сети `converter-network` и
+видят друг друга по именам контейнеров (`service1`, `service2`, `service3`,
+`postgres`, `minio`).
 
 ## Хранение данных в БД
 
@@ -51,12 +57,14 @@
 - PostgreSQL 15
 - Liquibase — миграции схемы БД
 - Jackson + `jackson-dataformat-xml` — конвертация XML ⇄ JSON
+- AWS SDK for Java v2 — работа с S3-совместимым хранилищем
+- MinIO — self-hosted S3-совместимое объектное хранилище
 - Lombok, MapStruct
 - Docker / Docker Compose
 
 ## API
 
-### Servise 1
+### Service 1
 
 #### `POST /request`
 
@@ -146,11 +154,11 @@ curl -X POST http://localhost:8080/page \
 }
 ```
 
-### Service 2 (service2)
+### Service 2
 
 #### `POST /xml2format`
 
-Конвертирует XML в JSON стандартными средствами Java (без XSLT). Вызывается
+Конвертирует XML в JSON посредством XSLT-преобразования. Вызывается
 Service 1 автоматически при каждом запросе на `/request`; самостоятельный
 вызов клиентом возможен, но не является предусмотренным сценарием
 использования.
@@ -177,24 +185,109 @@ curl -X POST http://localhost:8081/xml2format \
 }
 ```
 
+### Service 3
+
+#### `POST /s3/upload`
+
+Загружает файл в S3-хранилище (MinIO).
+
+- **Content-Type:** `multipart/form-data`
+- **Параметр:** `file` — загружаемый файл
+
+Пример запроса:
+
+```bash
+curl -X POST http://localhost:8082/s3/upload \
+  -F "file=@/path/to/file.xml"
+```
+
+Пример ответа `200 OK`:
+
+```json
+{
+  "key": "file.xml",
+  "bucket": "converter-bucket",
+  "message": "Файл успешно загружен"
+}
+```
+
+#### `GET /s3/download/{key}`
+
+Скачивает файл из S3-хранилища по ключу (имени файла).
+
+Пример запроса:
+
+```bash
+curl -X GET http://localhost:8082/s3/download/file.xml \
+  -o file.xml
+```
+
+Возвращает `200 OK` с бинарным содержимым файла или `404 Not Found` если
+файл не существует.
+
+#### `GET /s3/list`
+
+Возвращает список всех файлов в бакете.
+
+Пример запроса:
+
+```bash
+curl -X GET http://localhost:8082/s3/list
+```
+
+Пример ответа `200 OK`:
+
+```json
+[
+  {
+    "key": "file.xml",
+    "size": 1024,
+    "lastModified": "2026-06-29T09:00:00Z"
+  }
+]
+```
+
+#### `DELETE /s3/delete/{key}`
+
+Удаляет файл из S3-хранилища по ключу.
+
+Пример запроса:
+
+```bash
+curl -X DELETE http://localhost:8082/s3/delete/file.xml
+```
+
+Возвращает `204 No Content` при успехе или `404 Not Found` если файл не
+существует.
+
 ## Запуск проекта
 
 Проект полностью контейнеризован: для запуска нужен только Docker и Docker
 Compose, локальная установка Java/Maven/PostgreSQL не требуется.
 
-1. Создать в корне проекта файл `.env` со следующими переменными:
+1. Создать в корне проекта файл `.env` на основе `.env.example` со следующими
+   переменными:
 
    ```env
-   POSTGRES_DB=converter
-   POSTGRES_USER=converter_user
-   POSTGRES_PASSWORD=converter_password
-   POSTGRES_PORT=5432
+   POSTGRES_DB=converter_db_example
+   POSTGRES_USER=converter_user_example
+   POSTGRES_PASSWORD=converter_password_example
+   POSTGRES_PORT=5433
 
-   SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/converter
+   SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/converter_db_example
+   SPRING_DATASOURCE_USERNAME=converter_user_example
+   SPRING_DATASOURCE_PASSWORD=converter_password_example
 
    SERVICE1_PORT=8080
    SERVICE2_PORT=8081
+   SERVICE3_PORT=8082
    SERVICE2_BASE_URL=http://service2:8081
+
+   MINIO_PORT=9000
+   MINIO_CONSOLE_PORT=9001
+   MINIO_ROOT_USER=minioadmin_example
+   MINIO_ROOT_PASSWORD=minioadmin_example
+   MINIO_BUCKET_NAME=converter-bucket_example
    ```
 
 2. Поднять всё одной командой:
@@ -205,20 +298,27 @@ Compose, локальная установка Java/Maven/PostgreSQL не тре
 
    Порядок старта контролируется через `depends_on`: Service 1 запускается
    только после того, как PostgreSQL пройдёт healthcheck, и после старта
-   контейнера Service 2.
+   контейнера Service 2. Service 3 запускается только после того, как MinIO
+   пройдёт healthcheck.
 
 3. После старта доступны:
    - Service 1 — `http://localhost:8080`
    - Service 2 — `http://localhost:8081`
-   - PostgreSQL — `localhost:5432` (или порт из `POSTGRES_PORT`)
+   - Service 3 — `http://localhost:8082`
+   - PostgreSQL — `localhost:5433`
+   - MinIO API — `http://localhost:9000`
+   - MinIO веб-консоль — `http://localhost:9001` (логин и пароль из `.env`)
 
 Liquibase применит миграции и создаст таблицу `conversion_requests`
-автоматически при первом старте Service 1.
+автоматически при первом старте Service 1. Бакет `converter-bucket` будет
+создан автоматически при первом старте Service 3.
 
 ## Логирование
 
-Оба сервиса пишут логи в файл и в консоль (`logs/service1.log`,
-`logs/service2.log`), с уровнем `DEBUG` для пакетов `com.elizaveta.*` и
-`INFO` для всего остального. Service 2 логирует полный цикл
-API-взаимодействия — факт получения запроса, тело запроса (на `DEBUG`),
-результат конвертации и факт отправки ответа.
+Все три сервиса пишут логи в файл и в консоль (`logs/service1.log`,
+`logs/service2.log`, `logs/service3.log`), с уровнем `DEBUG` для пакетов
+`com.elizaveta.*` и `INFO` для всего остального. Service 2 логирует полный
+цикл API-взаимодействия — факт получения запроса, тело запроса (на `DEBUG`),
+результат конвертации и факт отправки ответа. Service 3 логирует каждую
+операцию с S3-хранилищем — факт получения запроса, результат операции и
+ошибки при их возникновении.
